@@ -1,5 +1,0 @@
-/home/alp/Applications/CLion/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /home/alp/CLionProjects/untitled
--- Found LibXml2: /usr/lib/x86_64-linux-gnu/libxml2.so (found version "2.9.1") 
--- Configuring done
--- Generating done
--- Build files have been written to: /home/alp/CLionProjects/untitled/cmake-build-debug

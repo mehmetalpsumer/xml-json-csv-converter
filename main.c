@@ -14,7 +14,7 @@ void csvToXml();
 void csvToJson();
 /* converts from xml */
 void xmlToCsv();
-void xmlCsv(xmlNode *node, char* prefix, bool first_line);
+void xmlToCsvWrite(xmlNode *node, char *prefix, bool first_line);
 void xmlToJson();
 void xmlToJsonWrite(xmlNode *a_node, bool flag);
 /* converts from json */
@@ -28,7 +28,7 @@ json_object *pop(void),*peek(void);
 /* misc functions */
 int ftruncate(int fd, off_t length);
 void removeCharacters(int length, FILE *file);
-char *addString(char *s1, char *s2);
+char * addString(char *s1, char *s2);
 
 /* GLOBAL VARIABLES */
 char input[50], output[50], format[5]; // -i -o -t vars
@@ -187,8 +187,6 @@ void xmlToJson(){
     }
 }
 void xmlToJsonWrite(xmlNode *xml_parent, bool flag) {
-    printf("Parent for %s is %d\n", xml_parent->name, &s.stk[s.top]);
-    bool isArray; // currently array or obj?
     // check for attributes
     if(xml_parent->properties){
         xmlAttr* attribute = xml_parent->properties;
@@ -213,15 +211,12 @@ void xmlToJsonWrite(xmlNode *xml_parent, bool flag) {
                     && strcmp(xml_parent->children->next->name,xml_parent->children->name)==0)
                 {
                     push(json_object_new_array());
-                    printf("Array created from %s at %d\n", xml_parent->name, &s.stk[s.top]);
                     xmlToJsonWrite(xml_parent->children, true);
-                    isArray = true;
                 }
                 else if(xml_parent->children->next==NULL
                         || strcmp(xml_parent->children->next->name,xml_parent->children->name)!=0){
                     push(json_object_new_object());
                     xmlToJsonWrite(xml_parent->children, false);
-                    isArray = false;
                 }
             }
         }
@@ -240,20 +235,16 @@ void xmlToJsonWrite(xmlNode *xml_parent, bool flag) {
     if(xml_parent->next!=NULL){
         xmlToJsonWrite(xml_parent->next, flag);
     } else if(xml_parent->parent->parent!=NULL){
-        printf("Popping %d\n", &s.stk[s.top]);
         json_object *tmp = pop();
         if (json_object_get_type(peek()) == json_type_array){
-            printf("Pushing %d as array\n", &s.stk[s.top]);
             json_object_array_add(peek(),tmp);
         }
         else if(json_object_get_type(peek()) == json_type_object) {
-            printf("Pushing %d as obj\n", &s.stk[s.top]);
             json_object_object_add(peek(), xml_parent->parent->name, tmp);
         }
     }
 }
 /* XML -> CSV */
-char *first_tag;
 void xmlToCsv(){
     // read xml file
     xml_doc = xmlReadFile(input, NULL, 256); // 256 is option for parse
@@ -271,7 +262,7 @@ void xmlToCsv(){
         xml_node = xml_root->children;
 
         // Write tags to first line
-        xmlCsv(xml_root,"", true);
+        xmlToCsvWrite(xml_root, "", true);
         removeCharacters(1,csv_doc);
         fputc('\n',csv_doc);
 
@@ -285,7 +276,7 @@ void xmlToCsv(){
         fputs(first_line, csv_doc);
 
         //write values
-        xmlCsv(xml_root,"", false);
+        xmlToCsvWrite(xml_root, "", false);
         removeCharacters(1,csv_doc);
 
         // free memory
@@ -295,12 +286,12 @@ void xmlToCsv(){
         xmlMemoryDump();
     }
 }
-void xmlCsv(xmlNode *node, char* prefix, bool first_line){
+void xmlToCsvWrite(xmlNode *node, char *prefix, bool first_line){
     bool flag = false;
     //children
     if(node->children!=NULL) {
         if(node->children->type==1){
-            xmlCsv(node->children, "", first_line);
+            xmlToCsvWrite(node->children, "", first_line);
         }
         else if(node->children->type==3){
             if(!first_line){
@@ -333,14 +324,13 @@ void xmlCsv(xmlNode *node, char* prefix, bool first_line){
         }
     }
 
+    // siblings of xml node
     if(node->next!=NULL){
-
         if(node->parent!=NULL && xmlDocGetRootElement(xml_doc)==node->parent) {
             removeCharacters(1, csv_doc);
             fputc('\n', csv_doc);
         }
-
-        xmlCsv(node->next, prefix, first_line);
+        xmlToCsvWrite(node->next, prefix, first_line);
     }
 }
 /* JSON -> XML */
@@ -660,6 +650,7 @@ void csvToXml(){
         xmlMemoryDump();
     }
 }
+
 /* STACK OPERATIONS */
 /*  Function to add an element to the stack */
 void push (json_object *j_obj) {
