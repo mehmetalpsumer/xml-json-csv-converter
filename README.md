@@ -1,13 +1,16 @@
 XML-JSON-CSV Converter
 
-    +Simple conversion application that runs on console.
+    +Simple conversion application that runs on terminal.
     
     +It is capable of the following conversions:
-    -> XML to JSON
-    -> JSON to XML
-    -> XML to CSV
-    -> CSV to XML
-    -> JSON to CSV
-    -> CSV to JSON
+        -> XML to JSON
+        -> JSON to XML
+        -> XML to CSV
+        -> CSV to XML
+        -> JSON to CSV
+        -> CSV to JSON
 
-    +There might be some issues for CSV conversions since it is rather more simplier form than others.
+    +Extra feature:
+        -> Converting XML's with attributes to CSV, with underscoring the tag such as "employee_firstName".
+
+    +There might occur an error while converting some JSON formats to XML.
